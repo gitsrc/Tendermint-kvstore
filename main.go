@@ -1,4 +1,4 @@
-package kvstore
+package main
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 func main() {
 	app := app.CreateKVStore()
 
-	server, err := server.NewServer("", "", app)
+	server, err := server.NewServer("127.0.0.1:3000", "socket", app)
 	if err != nil {
 		fmt.Println("create server failed: ", err)
 		return

@@ -7,3 +7,7 @@ import (
 func CreateKVStore() types.Application {
 	return nil
 }
+
+type PersisApplication struct {
+	types.BaseApplication
+}
