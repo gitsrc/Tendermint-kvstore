@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	server.AppWithTenderMint()
+	server.AppWithoutTenderMint()
 }

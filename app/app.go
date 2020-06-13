@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/tendermint/tendermint/abci/example/code"
@@ -15,10 +16,6 @@ import (
 	sdkstore "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/tendermint/tendermint/abci/types"
 )
-
-func CreateKVStore(db dbm.DB) types.Application {
-	return NewPersisApplication(db)
-}
 
 type PersisApplication struct {
 	types.Application
@@ -70,16 +67,21 @@ func (app *PersisApplication) DeliverTx(req types.RequestDeliverTx) types.Respon
 }
 
 func (app *PersisApplication) Commit() types.ResponseCommit {
-	app.cms.Commit()
-	return types.ResponseCommit{}
+	appHash := app.cms.Commit()
+	fmt.Printf("commit hash : %s\n", appHash.String())
+	return types.ResponseCommit{
+		Data: appHash.Hash,
+	}
 }
 
 func (app *PersisApplication) Query(req types.RequestQuery) types.ResponseQuery {
 	iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
+	fmt.Printf("custom query data : %s\n", req.Data)
 	res := iavlStore.Query(types.RequestQuery{
 		Path:  "/key", // required path to get key/value+proof
 		Data:  req.Data,
 		Prove: true,
 	})
+	fmt.Printf("proof : %s\n", res.Proof.String())
 	return res
 }

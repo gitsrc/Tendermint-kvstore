@@ -1,10 +1,8 @@
 package server
 
 import (
-	"flag"
 	"fmt"
 
-	cfg "github.com/tendermint/tendermint/config"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -13,10 +11,6 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/ludete/kvstore/app"
-)
-
-var (
-	home = flag.String("home", ".", "Dir in ")
 )
 
 func AppWithTenderMint() {
@@ -62,11 +56,13 @@ func AppWithTenderMint() {
 	select {}
 }
 
-func initConfig() *cfg.Config {
-	flag.Parse()
-	return &cfg.Config{
-		BaseConfig: cfg.BaseConfig{
-			RootDir: *home,
-		},
-	}
-}
+//func createCmd() *cobra.Command {
+//	ctx := server.NewDefaultContext()
+//	_ = ctx
+//	//rootCmd := &cobra.Command{
+//	//	Use:               "smartd",
+//	//	Short:             "CoinEx Smart Chain Daemon (server)",
+//	//	PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+//	//}
+//	return nil
+//}
