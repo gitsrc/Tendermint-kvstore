@@ -54,21 +54,26 @@ func (app *PersisApplication) DeliverTx(req types.RequestDeliverTx) types.Respon
 	}
 	iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
 	iavlStore.Set(key, value)
+	commit := iavlStore.Commit()
 	events := []types.Event{
 		{
 			Type: "app",
 			Attributes: []kv.Pair{
 				{Key: []byte("creator"), Value: []byte("Cosmoshi Netowoko")},
 				{Key: []byte("key"), Value: key},
+				{Key: []byte("hash"), Value: commit.Hash},
 			},
 		},
 	}
+	fmt.Println("---------- commit hash : ", commit.String())
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Events: events}
 }
 
 func (app *PersisApplication) Commit() types.ResponseCommit {
 	appHash := app.cms.Commit()
-	fmt.Printf("commit hash : %s\n", appHash.String())
+	iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
+	commit := iavlStore.Commit()
+	fmt.Printf("===========commit hash : %s\n", commit.String())
 	return types.ResponseCommit{
 		Data: appHash.Hash,
 	}
