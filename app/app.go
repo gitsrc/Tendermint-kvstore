@@ -8,12 +8,9 @@ import (
 	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/libs/kv"
 
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/store"
-	sdkstore "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
@@ -21,7 +18,7 @@ type PersisApplication struct {
 	types.Application
 
 	// store function
-	cms        store.CommitMultiStore
+	cms        store.CommitKVStore
 	kvStoreKey store.StoreKey
 }
 
@@ -33,11 +30,9 @@ func NewPersisApplication(db dbm.DB) *PersisApplication {
 	return app
 }
 
-func (app *PersisApplication) initDB(db dbm.DB) error {
-	app.cms = rootmulti.NewStore(db)
-	app.kvStoreKey = sdkstore.NewKVStoreKey(KvStoreKey)
-	app.cms.MountStoreWithDB(app.kvStoreKey, sdkstore.StoreTypeIAVL, nil)
-	if err := app.cms.LoadVersion(0); err != nil {
+func (app *PersisApplication) initDB(db dbm.DB) (err error) {
+	app.cms, err = iavl.LoadStore(db, store.CommitID{}, store.PruneNothing, false)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -52,9 +47,10 @@ func (app *PersisApplication) DeliverTx(req types.RequestDeliverTx) types.Respon
 	} else {
 		key, value = req.Tx, req.Tx
 	}
-	iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
-	iavlStore.Set(key, value)
-	commit := iavlStore.Commit()
+	//iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
+	app.cms.Set(key, value)
+	//iavlStore.Set(key, value)
+	commit := app.cms.Commit()
 	events := []types.Event{
 		{
 			Type: "app",
@@ -69,10 +65,11 @@ func (app *PersisApplication) DeliverTx(req types.RequestDeliverTx) types.Respon
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Events: events}
 }
 
+//0xC4B8100E0A64BDF915E3545CEAFA98C1DF3BFC5BAF85665B6BF294CCF8C98350
 func (app *PersisApplication) Commit() types.ResponseCommit {
 	appHash := app.cms.Commit()
-	iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
-	commit := iavlStore.Commit()
+	commit := app.cms.Commit()
+	//commit := iavlStore.Commit()
 	fmt.Printf("===========commit hash : %s\n", commit.String())
 	return types.ResponseCommit{
 		Data: appHash.Hash,
@@ -80,7 +77,7 @@ func (app *PersisApplication) Commit() types.ResponseCommit {
 }
 
 func (app *PersisApplication) Query(req types.RequestQuery) types.ResponseQuery {
-	iavlStore := app.cms.GetCommitStore(app.kvStoreKey).(*iavl.Store)
+	iavlStore := app.cms.(*iavl.Store)
 	fmt.Printf("custom query data : %s\n", req.Data)
 	res := iavlStore.Query(types.RequestQuery{
 		Path:  "/key", // required path to get key/value+proof
