@@ -1,50 +1,37 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/json"
+	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"strings"
 )
 
-type JsonResult struct {
-	Result struct {
-		DeliverTx struct {
-			Events []struct {
-				Attributes []struct {
-					Key   string `json:"key"`
-					Value string `json:"value"`
-				} `json:"attributes"`
-			} `json:"events"`
-		} `json:"deliver_tx"`
-	} `json:"result"`
-}
-
 func DecodeCommitHash() []byte {
-	hash := getCommitHash()
-	dec := base64.NewDecoder(base64.StdEncoding, bytes.NewBufferString(hash))
-	res1, err := ioutil.ReadAll(dec)
+	rootHash := getRootHash()
+	hash, err := hex.DecodeString(rootHash)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Convert hex hash failed : %v,\n actual rootHash: %s", err, rootHash))
 	}
-	return res1
+	return hash
 }
 
-func getCommitHash() string {
+func getRootHash() string {
 	content, err := readEventRet()
 	if err != nil || len(content) == 0 {
 		panic(fmt.Sprintf("err : %v, content size : %d\n", err, len(content)))
 	}
-	var r JsonResult
-	if err := json.Unmarshal([]byte(content), &r); err != nil {
-		panic(err)
+	data := strings.Split(content, "->")
+	if len(data) != 3 {
+		panic(fmt.Sprintf("Number of entries: %d, expected number : 3", len(data)))
 	}
-	if len(r.Result.DeliverTx.Events) == 0 || len(r.Result.DeliverTx.Events[0].Attributes) != 3 {
-		panic(fmt.Sprintf("unvalid json content, %s", content))
+	okIndex := strings.Index(data[1], ":")
+	isOk := strings.TrimSpace(data[1][okIndex+1:])
+	rootIndex := strings.Index(data[2], ":")
+	rootHash := strings.TrimSpace(data[2][rootIndex:])[4:]
+	if isOk != "OK" {
+		panic(fmt.Sprintf("RootHash result actual: [%s], expected: %s", isOk, "OK"))
 	}
-	hash := r.Result.DeliverTx.Events[0].Attributes[2].Value
-	return hash
+	return rootHash
 }
 
 func readEventRet() (string, error) {
