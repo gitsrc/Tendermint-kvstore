@@ -49,16 +49,14 @@ echo "apphash is $APPHASH\n"
 sleep 3s
 
 PROOF=`curl -s 'localhost:26657/abci_query?data="'"$KEY"'"' | jq .result.response.proof | tr -d " \t\n\r"`
-echo "proof for ($KEY, $VALUE) is:\n$PROOF\n"
+echo "proof for ($KEY, $VALUE) is: $PROOF\n"
 sleep 3s
 
 # building proof verification tool
-cd verify
+cd verify && go build .
 # verify proof related with kv pair
 echo "verify ($KEY, $VALUE) with above apphash and proof"
-
 ./verify -key=$KEY  -value=$VALUE -root=$APPHASH -proof=$PROOF
-
 
 echo "cleaning up"
 cd ..
