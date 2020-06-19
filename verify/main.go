@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -11,15 +11,10 @@ import (
 func main() {
 	keyPtr := flag.String("key", "", "key")
 	valuePtr := flag.String("value", "", "value")
-	rootPtr := flag.String("root", "", "root hash in base64 encoded form")
+	rootPtr := flag.String("root", "", "root hash in hex encoded form")
 	proofPtr := flag.String("proof", "", "proof in json form")
 
 	flag.Parse()
-
-	fmt.Printf("proof: \n%s\n", *proofPtr)
-	fmt.Printf(" root: %s\n", *rootPtr)
-	fmt.Printf("  key: %s\n", *keyPtr)
-	fmt.Printf("value: %s\n", *valuePtr)
 
 	err := verify(*proofPtr, *rootPtr, *keyPtr, *valuePtr)
 	if err != nil {
@@ -31,8 +26,7 @@ func main() {
 	fmt.Printf("kv onchain verify (%s,%s) succeeded\n", *keyPtr, *valuePtr)
 }
 
-func verify(proofJson, rootBase64, key, value string) error {
-
+func verify(proofJson, rootHex, key, value string) error {
 	merkleProof := &merkle.Proof{Ops: make([]merkle.ProofOp, 1)}
 	err := merkleProof.UnmarshalJSON([]byte(proofJson))
 	if err != nil {
@@ -40,17 +34,11 @@ func verify(proofJson, rootBase64, key, value string) error {
 		return err
 	}
 
-	rootBytes, err := base64.StdEncoding.DecodeString(rootBase64)
+	rootBytes, err := hex.DecodeString(rootHex)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err.Error())
 		return err
 	}
-
-	fmt.Printf("proof: %s\n root: %s\n key: %s\n value: %s\n",
-		proofJson,
-		rootBase64,
-		key,
-		value)
 
 	prf := rootmulti.DefaultProofRuntime()
 	return prf.VerifyValue(merkleProof, rootBytes, fmt.Sprintf("/%s", key), []byte(value))
