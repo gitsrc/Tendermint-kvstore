@@ -12,7 +12,7 @@ sleep 3s
 
 
 # starting tendermint as client
-tendermint unsafe_reset_all
+tendermint unsafe_reset_all >/dev/null 2>/dev/null
 tendermint node  >node.log 2>node.log &
 NODE_PID=`ps -ef | grep "tendermint" | grep -v grep | awk '{print $2}'`
 echo "tendermint node running in pid $NODE_PID\n"
