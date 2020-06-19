@@ -2,9 +2,6 @@ package app
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/libs/kv"
@@ -40,7 +37,6 @@ func (app *KVStoreApplication) initDB(db dbm.DB) (err error) {
 }
 
 func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
-
 	var key, value []byte
 	parts := bytes.Split(req.Tx, []byte("="))
 	if len(parts) == 2 {
@@ -65,23 +61,17 @@ func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.Respo
 
 func (app *KVStoreApplication) Commit() types.ResponseCommit {
 	commitID := app.cms.Commit()
-	fmt.Printf("CommitID.Version %d CommitID.Hash %s\n",
-		commitID.Version, hex.EncodeToString(commitID.Hash))
 	return types.ResponseCommit{ Data: commitID.Hash }
 }
 
 func (app *KVStoreApplication) Query(req types.RequestQuery) types.ResponseQuery {
 	iavlStore := app.cms.(*iavl.Store)
-	fmt.Printf("querying %s\n", hex.EncodeToString(req.Data))
+
 	res := iavlStore.Query(types.RequestQuery{
 		Path:  "/key", // required path to get key/value+proof
 		Data:  req.Data,
 		Prove: true,
 	})
-	proofJson, err := res.Proof.MarshalJSON()
-	if err != nil {
-		fmt.Printf("ERROR: %s\n", err.Error())
-	}
-	fmt.Printf("Query Proof : %s\n", string(proofJson))
+
 	return res
 }
