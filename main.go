@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/ludete/kvstore/server"
+	"github.com/ludete/kvstore/app"
 )
 
 func main() {
-	server.AppWithoutTenderMint()
+	app.RemoteAppViaTSP()
 }
