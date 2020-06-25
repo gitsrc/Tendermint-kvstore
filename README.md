@@ -1,4 +1,4 @@
-kvstore is a demo to tendermint app;
+distributed kvstore demo built with tendermint and iavl+
 
 ## First build tendermint-abci
 
@@ -9,5 +9,5 @@ kvstore is a demo to tendermint app;
 
 ## Then run the demo automatically
 
-just use the bash scipt [run.sh](./run.sh)
+Just use the bash scipt [run.sh](./run.sh)
 
