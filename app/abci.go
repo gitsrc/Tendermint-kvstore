@@ -14,10 +14,7 @@ import (
 
 type KVStoreApplication struct {
 	types.Application
-
-	// store function
 	cms        store.CommitKVStore
-	kvStoreKey store.StoreKey
 }
 
 func NewKVStoreApplication(db dbm.DB) *KVStoreApplication {
