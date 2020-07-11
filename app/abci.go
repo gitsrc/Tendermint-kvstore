@@ -14,7 +14,7 @@ import (
 
 type KVStoreApplication struct {
 	types.Application
-	cms        store.CommitKVStore
+	store        store.CommitKVStore
 }
 
 func NewKVStoreApplication(db dbm.DB) *KVStoreApplication {
@@ -26,7 +26,7 @@ func NewKVStoreApplication(db dbm.DB) *KVStoreApplication {
 }
 
 func (app *KVStoreApplication) initDB(db dbm.DB) (err error) {
-	app.cms, err = iavl.LoadStore(db, store.CommitID{}, store.PruneNothing, false)
+	app.store, err = iavl.LoadStore(db, store.CommitID{}, store.PruneNothing, false)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.Respo
 		key, value = req.Tx, req.Tx
 	}
 
-	app.cms.Set(key, value)
+	app.store.Set(key, value)
 
 	events := []types.Event{
 		{
@@ -57,12 +57,12 @@ func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.Respo
 }
 
 func (app *KVStoreApplication) Commit() types.ResponseCommit {
-	commitID := app.cms.Commit()
+	commitID := app.store.Commit()
 	return types.ResponseCommit{ Data: commitID.Hash }
 }
 
 func (app *KVStoreApplication) Query(req types.RequestQuery) types.ResponseQuery {
-	iavlStore := app.cms.(*iavl.Store)
+	iavlStore := app.store.(*iavl.Store)
 
 	res := iavlStore.Query(types.RequestQuery{
 		Path:  "/key", // required path to get key/value+proof
