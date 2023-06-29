@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
@@ -9,14 +10,17 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 	dbm "github.com/tendermint/tm-db"
-
 )
 
 func LocalApp() {
 	// init config
 	cfg := initConfig()
-	db := dbm.NewDB("app", dbm.GoLevelDBBackend, ".")
-	app := NewKVStoreApplication(db)
+	_, err := dbm.NewDB("app", dbm.GoLevelDBBackend, ".")
+	if err != nil {
+		log.Panic(err)
+	}
+	//app := NewKVStoreApplication(db)
+	app := NewKVStoreApplication()
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		fmt.Println(err)

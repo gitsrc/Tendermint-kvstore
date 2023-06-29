@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/tendermint/tendermint/abci/server"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -9,15 +10,20 @@ import (
 
 func RemoteAppViaTSP() {
 	// create app
-	db := createDB(initConfig())
-	app := NewKVStoreApplication(db)
-
+	_, err := createDB(initConfig())
+	if err != nil {
+		log.Panic(err)
+	}
+	//app := NewKVStoreApplication(db)
+	app := NewKVStoreApplication()
 	// create server
 	server, err := server.NewServer("127.0.0.1:26658", "socket", app)
 	if err != nil {
 		fmt.Println("create server failed: ", err)
 		return
 	}
+
+	log.Println(server.String())
 
 	// start server
 	if err := server.Start(); err != nil {

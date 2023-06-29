@@ -22,6 +22,6 @@ func initConfig() *cfg.Config {
 	}
 }
 
-func createDB(cfg *cfg.Config) dbm.DB {
+func createDB(cfg *cfg.Config) (dbm.DB, error) {
 	return dbm.NewDB("app", dbm.GoLevelDBBackend, filepath.Join(cfg.RootDir, "data"))
 }
